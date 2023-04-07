@@ -6,7 +6,7 @@ const emits = defineEmits(['action'])
 const conversionActionList: { label: string; cmd: JsonConversionType }[] = [
   { label: 'to XML', cmd: '2xml' },
   // { label: 'to TypeScript', cmd: '2ts' },
-  // { label: 'to YAML', cmd: '2yaml' },
+  { label: 'to YAML', cmd: '2yaml' },
   { label: 'to URL Params', cmd: '2url' },
 ]
 

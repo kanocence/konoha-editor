@@ -1,6 +1,7 @@
 import type { editor } from 'monaco-editor'
 import { ElMessage } from 'element-plus'
 import { XMLBuilder } from 'fast-xml-parser'
+import { stringify } from 'yaml'
 import type { JsonConversionType } from '../../../typeings'
 
 /**
@@ -100,6 +101,10 @@ export const extractJsonFromUrl = (str: string) => {
   return JSON.stringify(jsonObj)
 }
 
+/**
+ * JSON转换为XML
+ * @param str
+ */
 const json2xml = (str: string) => {
   const builder = new XMLBuilder({})
   const xml = builder.build(JSON.parse(str))
@@ -107,12 +112,22 @@ const json2xml = (str: string) => {
   ElMessage.success('已复制到剪贴板')
 }
 
+/**
+ * JSON转换为TypeScript
+ * @param str
+ */
 const json2ts = (str: string) => {
   // TODO
 }
 
+/**
+ * JSON转换为YAML
+ * @param str
+ */
 const json2yaml = (str: string) => {
-  // TODO
+  const yaml = stringify(JSON.parse(str))
+  navigator.clipboard.writeText(yaml)
+  ElMessage.success('已复制到剪贴板')
 }
 
 const json2url = (str: string) => {
