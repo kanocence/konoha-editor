@@ -1,23 +1,35 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
+import { useMagicKeys } from '@vueuse/core'
 import EditorHeader from './components/editor-header.vue'
 import EditorMain from './components/editor-main.vue'
 import type { EditorPanel } from './typeings'
 
-let tabIndex = 0
+let tabIndex = 1
 const tabsValue = ref('0')
-const tabs = ref<EditorPanel[]>([{ title: 'JSON', name: '0', content: '', language: 'json' }])
+const tabs = ref<EditorPanel[]>([
+  { title: '1.JSON', name: '0', content: '', language: 'json' },
+])
 
 const addTab = ({ title, content, language }: EditorPanel) => {
-  const newTabName = `${++tabIndex}`
+  const newTabIndex = `${++tabIndex}`
   tabs.value.push({
-    title,
-    name: newTabName,
+    title: `${newTabIndex}.${title}`,
+    name: newTabIndex,
     content,
     language,
   })
-  tabsValue.value = newTabName
+  tabsValue.value = newTabIndex
 }
+
+useMagicKeys({
+  passive: false,
+  onEventFired(e) {
+    // prevent ctrl + s
+    if (e.ctrlKey && e.type === 'keydown' && e.key === 's')
+      e.preventDefault()
+  },
+})
 </script>
 
 <template>
