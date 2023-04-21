@@ -1,3 +1,3 @@
-import JSONEditor from './json-editor.vue'
+import JSONEditor from './src/json-editor.vue'
 
 export { JSONEditor }

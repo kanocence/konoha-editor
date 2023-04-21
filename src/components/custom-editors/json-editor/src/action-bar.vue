@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import type { JsonConversionType } from '../../../typeings'
+import type { JsonConversionType } from '../../../../typeings'
+import ActionBarCode from './action-bar-code.vue'
 
-const emits = defineEmits(['action'])
+const emits = defineEmits(['action', 'run', 'close'])
 
 const conversionActionList: { label: string; cmd: JsonConversionType }[] = [
   { label: 'to XML', cmd: '2xml' },
@@ -34,36 +35,39 @@ const onAction = (action: string[]) => {
 
 <template>
   <div class="action-bar">
-    <el-tooltip
-      v-for="action in actions"
-      :key="action.cmd"
-      :content="action.tip"
-      placement="top"
-      :show-arrow="false"
-      :hide-after="100"
-    >
-      <!-- dropdown -->
-      <el-dropdown v-if="action.type === 'dropdown'" trigger="click">
-        <el-button text>
+    <ActionBarCode @run="emits('run', $event)" @close="emits('close')" />
+    <div>
+      <el-tooltip
+        v-for="action in actions"
+        :key="action.cmd"
+        :content="action.tip"
+        placement="top"
+        :show-arrow="false"
+        :hide-after="100"
+      >
+        <!-- dropdown -->
+        <el-dropdown v-if="action.type === 'dropdown'" trigger="click">
+          <el-button text>
+            <i class="iconfont" :class="[action.icon]" />
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item
+                v-for="item in action.list"
+                :key="item.cmd"
+                @click="onAction([action.cmd, item.cmd])"
+              >
+                {{ item.label }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+        <!-- button -->
+        <el-button v-else text @click="onAction([action.cmd])">
           <i class="iconfont" :class="[action.icon]" />
         </el-button>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item
-              v-for="item in action.list"
-              :key="item.cmd"
-              @click="onAction([action.cmd, item.cmd])"
-            >
-              {{ item.label }}
-            </el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
-      <!-- button -->
-      <el-button v-else text @click="onAction([action.cmd])">
-        <i class="iconfont" :class="[action.icon]" />
-      </el-button>
-    </el-tooltip>
+      </el-tooltip>
+    </div>
   </div>
 </template>
 
@@ -76,7 +80,7 @@ const onAction = (action: string[]) => {
 
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
 
   .el-button + .el-button {
     margin-left: 0;

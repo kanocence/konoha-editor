@@ -10,15 +10,16 @@ import {
   fullFold,
   fullFormat,
   removeComments,
-} from '../actions'
-import type { JsonConversionType } from '../../../typeings'
+} from '../../actions'
+import type { JsonConversionType } from '../../../../typeings'
 import {
   compression,
   conversion,
+  createFunc,
   escape,
   extractJsonFromUrl,
-} from './json-editor-actions'
-import ActionBar from './action-bar.vue'
+} from '../src/json-editor-actions'
+import ActionBar from '../src/action-bar.vue'
 
 const props = defineProps<{
   /**
@@ -28,21 +29,35 @@ const props = defineProps<{
 }>()
 const emits = defineEmits(['update:modelValue'])
 
-const dom = ref<HTMLElement>()
+const mainEditor = ref<HTMLElement>()
 const jsonEditor = ref<HTMLElement>()
+const subEditor = ref<HTMLElement>()
 let instance: editor.IStandaloneCodeEditor | undefined
+let subInstance: editor.IStandaloneCodeEditor | undefined
+const subEditorVisible = ref(false)
 const theme = useStorage('theme', 'auto')
 const { height } = useElementSize(jsonEditor)
 
 onMounted(() => {
   const model = editor.createModel(props.modelValue, 'json')
+  const subModel = editor.createModel('', 'json')
 
   instance = markRaw(
-    editor.create(dom.value!, {
+    editor.create(mainEditor.value!, {
       model,
       automaticLayout: true,
       scrollBeyondLastLine: false,
       theme: theme.value === 'dark' ? 'vs-dark' : 'vs',
+    }),
+  )
+
+  subInstance = markRaw(
+    editor.create(subEditor.value!, {
+      model: subModel,
+      automaticLayout: true,
+      scrollBeyondLastLine: false,
+      theme: theme.value === 'dark' ? 'vs-dark' : 'vs',
+      readOnly: true,
     }),
   )
 
@@ -94,15 +109,19 @@ onMounted(() => {
         let formatTextWithTab = formatText
         if (indentCount) {
           const formatLines = formatText.split('\n')
-          formatTextWithTab = formatLines.map((line, index) => {
-            if (index === 0)
-              return line
-            return ' '.repeat(indentCount) + line
-          }).join('\n')
+          formatTextWithTab = formatLines
+            .map((line, index) => {
+              if (index === 0)
+                return line
+              return ' '.repeat(indentCount) + line
+            })
+            .join('\n')
         }
 
         // only the inserts are updated
-        instance.executeEdits('paste', [{ range: e.range, text: formatTextWithTab }])
+        instance.executeEdits('paste', [
+          { range: e.range, text: formatTextWithTab },
+        ])
       }
       catch {}
     }
@@ -111,6 +130,18 @@ onMounted(() => {
     }
   })
 })
+
+/**
+ * open sub editor
+ * @param content
+ */
+const openSubEditor = (content: string) => {
+  subEditorVisible.value = true
+  subInstance?.setValue(content)
+
+  const { clientWidth, clientHeight } = jsonEditor.value!
+  instance?.layout({ width: clientWidth / 2, height: clientHeight - 50 })
+}
 
 /**
  * custom action
@@ -144,12 +175,38 @@ const handleAction = ([cmd, cmd2]: [string, JsonConversionType]) => {
       escape(instance!)
       break
     case 'conversion':
-      conversion(cmd2, instance!)
+      openSubEditor(conversion(cmd2, instance!))
       break
     case 'copy':
       copy(props.modelValue)
       break
   }
+}
+
+/**
+ * run code
+ * @param code
+ */
+const handleRunCode = (code: string) => {
+  if (!checkEditor(instance)) {
+    ElMessage.error('Editor存在错误')
+    return
+  }
+  const { type, message } = createFunc(instance!.getValue(), code)
+  if (type === 'success' && message)
+    openSubEditor(JSON.stringify(message, null, 4))
+
+  else if (type === 'error')
+    ElMessage.error(message)
+}
+
+/**
+ * close sub editor
+ */
+const handleClose = () => {
+  subEditorVisible.value = false
+  const { clientWidth, clientHeight } = jsonEditor.value!
+  instance?.layout({ width: clientWidth, height: clientHeight - 50 })
 }
 
 // theme
@@ -169,8 +226,16 @@ watch(
 
 <template>
   <div ref="jsonEditor" class="editor">
-    <div ref="dom" class="editor-content" />
-    <ActionBar @action="handleAction" />
+    <div class="editor-content">
+      <div class="editor-content__main">
+        <div ref="mainEditor" />
+      </div>
+      <el-divider v-show="subEditorVisible" direction="vertical" />
+      <div class="editor-content__sub">
+        <div v-show="subEditorVisible" ref="subEditor" />
+      </div>
+    </div>
+    <ActionBar @action="handleAction" @run="handleRunCode" @close="handleClose" />
   </div>
 </template>
 
@@ -182,6 +247,27 @@ watch(
 
   &-content {
     flex: 1;
+    width: 100%;
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    justify-content: center;
+
+    .el-divider {
+      height: 100%;
+      margin: 0;
+    }
+
+    &__main,
+    &__sub {
+      > div {
+        height: 100%;
+      }
+    }
+
+    &__sub {
+      width: 50%;
+    }
   }
 }
 </style>

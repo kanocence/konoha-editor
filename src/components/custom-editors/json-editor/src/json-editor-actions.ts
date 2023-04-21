@@ -2,7 +2,7 @@ import type { editor } from 'monaco-editor'
 import { ElMessage } from 'element-plus'
 import { XMLBuilder } from 'fast-xml-parser'
 import { stringify } from 'yaml'
-import type { JsonConversionType } from '../../../typeings'
+import type { JsonConversionType } from '../../../../typeings'
 
 /**
  * JSON - 压缩
@@ -106,10 +106,8 @@ export const extractJsonFromUrl = (str: string) => {
  * @param str
  */
 const json2xml = (str: string) => {
-  const builder = new XMLBuilder({})
-  const xml = builder.build(JSON.parse(str))
-  navigator.clipboard.writeText(xml)
-  ElMessage.success('已复制到剪贴板')
+  const builder = new XMLBuilder({ format: true })
+  return builder.build(JSON.parse(str))
 }
 
 /**
@@ -124,12 +122,13 @@ const json2ts = (str: string) => {
  * JSON转换为YAML
  * @param str
  */
-const json2yaml = (str: string) => {
-  const yaml = stringify(JSON.parse(str))
-  navigator.clipboard.writeText(yaml)
-  ElMessage.success('已复制到剪贴板')
-}
+const json2yaml = (str: string) => stringify(JSON.parse(str))
 
+/**
+ * JSON转换为URL Params
+ * @param str
+ * @returns
+ */
 const json2url = (str: string) => {
   const jsonObj = JSON.parse(str)
   const urlParams = Object.keys(jsonObj).reduce((prev, cur) => {
@@ -138,9 +137,7 @@ const json2url = (str: string) => {
       prev.push(`${cur}=${encodeURIComponent(value)}`)
     return prev
   }, [] as string[])
-  const url = urlParams.join('&')
-  navigator.clipboard.writeText(url)
-  ElMessage.success('已复制到剪贴板')
+  return urlParams.join('&')
 }
 
 /**
@@ -156,16 +153,29 @@ export const conversion = (target: JsonConversionType, instance: editor.IStandal
   const str = instance!.getValue()
   switch (target) {
     case '2xml':
-      json2xml(str)
-      break
+      return json2xml(str)
     case '2ts':
-      json2ts(str)
-      break
+      return json2ts(str)
     case '2yaml':
-      json2yaml(str)
-      break
+      return json2yaml(str)
     case '2url':
-      json2url(str)
-      break
+      return json2url(str)
+  }
+}
+
+/**
+ * 执行自定义代码
+ * @param data
+ * @param code
+ * @returns
+ */
+export const createFunc = (data: any, code: string) => {
+  try {
+    // eslint-disable-next-line no-new-func
+    const res = Function(`return this${code}`).bind(JSON.parse(data))()
+    return { type: 'success', message: res }
+  }
+  catch (e) {
+    return { type: 'error', message: (e as Error).message }
   }
 }
