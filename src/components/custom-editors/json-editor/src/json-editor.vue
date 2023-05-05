@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { markRaw, onMounted, ref, watch } from 'vue'
+import { markRaw, nextTick, onMounted, ref, watch } from 'vue'
 import { editor } from 'monaco-editor'
 import { useElementSize, useStorage } from '@vueuse/core'
 import { ElMessage } from 'element-plus'
@@ -26,6 +26,10 @@ const props = defineProps<{
    * json string
    */
   modelValue: string
+  /**
+   * panel active status
+   */
+  active: boolean
 }>()
 const emits = defineEmits(['update:modelValue'])
 
@@ -36,7 +40,7 @@ let instance: editor.IStandaloneCodeEditor | undefined
 let subInstance: editor.IStandaloneCodeEditor | undefined
 const subEditorVisible = ref(false)
 const theme = useStorage('theme', 'auto')
-const { height } = useElementSize(jsonEditor)
+const { height, width } = useElementSize(jsonEditor)
 
 onMounted(() => {
   const model = editor.createModel(props.modelValue, 'json')
@@ -192,10 +196,14 @@ const handleRunCode = (code: string) => {
     ElMessage.error('Editor存在错误')
     return
   }
-  const { type, message } = createFunc(instance!.getValue(), code)
+
+  const content = instance!.getValue()
+  if (!content.trim().length)
+    return
+
+  const { type, message } = createFunc(content, code)
   if (type === 'success' && message)
     openSubEditor(JSON.stringify(message, null, 4))
-
   else if (type === 'error')
     ElMessage.error(message)
 }
@@ -216,10 +224,22 @@ watch(theme, (value) => {
 
 // layout
 watch(
-  () => [height.value],
+  () => [height.value, width.value],
   () => {
     const { clientWidth, clientHeight } = jsonEditor.value!
-    instance?.layout({ width: clientWidth, height: clientHeight - 50 })
+    instance?.layout({ width: subEditorVisible.value ? clientWidth / 2 : clientWidth, height: clientHeight - 50 })
+    subInstance?.layout({ width: clientWidth / 2, height: clientHeight - 50 })
+  },
+)
+
+watch(
+  () => [props.active],
+  async () => {
+    if (props.active && subEditorVisible.value) {
+      await nextTick()
+      const { clientWidth, clientHeight } = jsonEditor.value!
+      instance?.layout({ width: clientWidth / 2, height: clientHeight - 50 })
+    }
   },
 )
 </script>

@@ -59,7 +59,7 @@ const removeTab = (name: TabPaneName) => {
       :label="item.title"
       :name="item.name"
     >
-      <JSONEditor v-model="item.content" />
+      <JSONEditor v-model="item.content" :active="item.name === editableTabsValue" />
     </el-tab-pane>
   </el-tabs>
 </template>

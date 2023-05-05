@@ -14,7 +14,7 @@ const handleRun = () => {
   <div class="action-bar-code">
     <el-input
       v-model="code"
-      placeholder="执行JS, 例如输入 '.map((i => i.id)', enter或按钮执行"
+      placeholder="执行JS函数, 如 .map(item => item.name))"
       @keydown.enter="handleRun"
     >
       <template #prepend>
@@ -23,7 +23,7 @@ const handleRun = () => {
     </el-input>
     <el-popover
       placement="top"
-      title="this"
+      title="data"
       :width="500"
       trigger="click"
     >
@@ -31,6 +31,7 @@ const handleRun = () => {
         v-model="code"
         type="textarea"
         :autosize="{ minRows: 5, maxRows: 10 }"
+        placeholder="执行JS函数, 如 .map(item => item.name))"
       />
       <template #reference>
         <el-button :icon="EditPen" />

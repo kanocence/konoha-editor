@@ -14,7 +14,6 @@ declare module '@vue/runtime-core' {
     EditorHeader: typeof import('./src/components/editor-header.vue')['default']
     EditorMain: typeof import('./src/components/editor-main.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
-    ElButtonGroup: typeof import('element-plus/es')['ElButtonGroup']
     ElDivider: typeof import('element-plus/es')['ElDivider']
     ElDropdown: typeof import('element-plus/es')['ElDropdown']
     ElDropdownItem: typeof import('element-plus/es')['ElDropdownItem']
