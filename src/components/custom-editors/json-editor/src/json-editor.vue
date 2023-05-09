@@ -202,7 +202,7 @@ const handleRunCode = (code: string) => {
     return
 
   const { type, message } = createFunc(content, code)
-  if (type === 'success' && message)
+  if (type === 'success')
     openSubEditor(JSON.stringify(message, null, 4))
   else if (type === 'error')
     ElMessage.error(message)

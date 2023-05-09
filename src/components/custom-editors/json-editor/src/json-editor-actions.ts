@@ -176,6 +176,6 @@ export const createFunc = (data: any, code: string) => {
     return { type: 'success', message: res }
   }
   catch (e) {
-    return { type: 'error', message: (e as Error).message }
+    return { type: 'error', message: (e as Error).message.replace('this', 'data') }
   }
 }
