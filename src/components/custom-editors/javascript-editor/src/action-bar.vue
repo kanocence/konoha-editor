@@ -5,7 +5,7 @@ const emits = defineEmits(['action', 'run', 'close'])
 
 const actions: any = [
   { tip: '格式化', cmd: 'format', iconfont: 'icon-format' },
-  { tip: '运行', cmd: 'run', svg: Promotion },
+  { tip: '运行 (Ctrl + R)', cmd: 'run', svg: Promotion },
   { tip: '关闭', cmd: 'close', svg: CloseBold },
 ]
 

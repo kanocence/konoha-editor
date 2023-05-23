@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { markRaw, nextTick, onMounted, ref, watch } from 'vue'
 import { editor } from 'monaco-editor'
-import { useElementSize, useStorage } from '@vueuse/core'
+import { useElementSize, useMagicKeys, useStorage } from '@vueuse/core'
 import ActionBar from '../src/action-bar.vue'
 import {
   fullFormat,
@@ -79,13 +79,31 @@ const handleClose = () => {
   instance?.layout({ width: clientWidth, height: clientHeight - 50 })
 }
 
+/**
+ * run code
+ */
 const runCode = () => {
   const val = instance?.getValue()
   if (val) {
-    const logs: string[] = runCodeInSandbox(val)
-    openSubEditor(logs.join('\n'))
+    const logs: any[][] = runCodeInSandbox(val)
+    const content = logs.map(i => i.map(j => JSON.stringify(j)).join('\n')).join('\n')
+    openSubEditor(content)
+  }
+  else {
+    subInstance?.setValue('')
   }
 }
+
+useMagicKeys({
+  passive: false,
+  onEventFired(e) {
+    // prevent ctrl + r
+    if (e.ctrlKey && e.type === 'keydown' && e.key === 'r') {
+      e.preventDefault()
+      runCode()
+    }
+  },
+})
 
 /**
  * handle action
