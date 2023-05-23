@@ -2,7 +2,7 @@
 import type { TabPaneName } from 'element-plus'
 import { computed } from 'vue'
 import type { EditorPanel } from '../typeings'
-import { JSONEditor } from './custom-editors'
+import { editorMap } from './custom-editors'
 
 const props = defineProps<{
   /**
@@ -59,7 +59,11 @@ const removeTab = (name: TabPaneName) => {
       :label="item.title"
       :name="item.name"
     >
-      <JSONEditor v-model="item.content" :active="item.name === editableTabsValue" />
+      <component
+        :is="editorMap[item.language]"
+        v-model="item.content"
+        :active="item.name === editableTabsValue"
+      />
     </el-tab-pane>
   </el-tabs>
 </template>

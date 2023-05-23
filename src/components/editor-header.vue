@@ -18,6 +18,13 @@ const subMenu = [
       emits('addTab', { language: 'json', title: 'JSON', content: '' })
     },
   },
+  {
+    title: 'JavaScript Editor',
+    key: 'javascript',
+    onClick: () => {
+      emits('addTab', { language: 'javascript', title: 'JavaScript', content: '' })
+    },
+  },
 ]
 
 const refresh = () => {

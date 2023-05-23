@@ -1,6 +1,26 @@
 import { editor } from 'monaco-editor'
 import { ElMessage } from 'element-plus'
 
+let sandboxTarget: any = { _logs: [] }
+
+const sandbox = new Proxy(window, {
+  get(target, key) {
+    if (key === 'console') {
+      return {
+        log(...args: any[]) { sandboxTarget._logs.push(args) },
+      }
+    }
+
+    if (key in sandboxTarget)
+      return Reflect.get(target, key)
+
+    return Reflect.get(window, key)
+  },
+  set(_target, key, value) {
+    return Reflect.set(sandboxTarget, key, value)
+  },
+})
+
 /**
  * 检查是否可用和是否有语法错误
  * @param instance
@@ -62,4 +82,17 @@ export const removeComments = (instance: editor.IStandaloneCodeEditor) => {
 export const copy = (str: string) => {
   navigator.clipboard.writeText(str)
   ElMessage.success('已复制到剪贴板')
+}
+
+export const runCodeInSandbox = (code: string) => {
+  sandboxTarget = { _logs: [] }
+  const codeWith = `with ( sandbox ) {; ${code} \n}`
+  try {
+    // eslint-disable-next-line no-new-func
+    Function('sandbox', codeWith)(sandbox)
+    return sandboxTarget._logs
+  }
+  catch (e: any) {
+    return [(`Uncaught ${e.name}: ${e.message}`)]
+  }
 }

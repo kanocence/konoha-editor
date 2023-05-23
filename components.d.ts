@@ -28,6 +28,7 @@ declare module '@vue/runtime-core' {
     ElTabPane: typeof import('element-plus/es')['ElTabPane']
     ElTabs: typeof import('element-plus/es')['ElTabs']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
+    JavascriptEditor: typeof import('./src/components/custom-editors/javascript-editor/src/javascript-editor.vue')['default']
     JsonEditor: typeof import('./src/components/custom-editors/json-editor/src/json-editor.vue')['default']
   }
 }
